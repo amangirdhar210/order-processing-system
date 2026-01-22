@@ -1,0 +1,117 @@
+{
+  "table_name": "order_processing_system",
+  "billing_mode": "PAY_PER_REQUEST",
+  "key_schema": {
+    "partition_key": "PK",
+    "sort_key": "SK"
+  },
+  "access_patterns": [
+    {
+      "pattern": "Get user by email",
+      "pk": "EMAIL#<email>",
+      "sk": "USER#<user_id>",
+      "operation": "Query"
+    },
+    {
+      "pattern": "Get user by user_id",
+      "pk": "USER#<user_id>",
+      "sk": "PROFILE",
+      "operation": "Query"
+    },
+    {
+      "pattern": "Get orders by status (staff/admin)",
+      "pk": "STATUS#<order_status>",
+      "sk": "{yyyy-mm-dd}#ORDER#<order_id>",
+      "operation": "Query"
+    },
+    {
+      "pattern": "Get orders by user",
+      "pk": "ORDERS#<user_id>",
+      "sk": "ORDER#<order_id>",
+      "operation": "Query"
+    }
+  ],
+  "entity_examples": [
+    {
+      "entity_type": "User (by email)",
+      "PK": "EMAIL#john.doe@example.com",
+      "SK": "USER#usr-550e8400-e29b-41d4-a716-446655440000",
+      "id": "usr-550e8400-e29b-41d4-a716-446655440000",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "password": "$2b$12$hashedpassword",
+      "created_at": "2026-01-22T10:00:00Z",
+      "entity_type": "USER"
+    },
+    {
+      "entity_type": "User (by user_id)",
+      "PK": "USER#usr-550e8400-e29b-41d4-a716-446655440000",
+      "SK": "PROFILE",
+      "id": "usr-550e8400-e29b-41d4-a716-446655440000",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "password": "$2b$12$hashedpassword",
+      "created_at": "2026-01-22T10:00:00Z",
+      "entity_type": "USER"
+    },
+    {
+      "entity_type": "Order (by status for staff/admin)",
+      "PK": "STATUS#PAYMENT_PENDING",
+      "SK": "2026-01-22#ORDER#ord-650e8400-e29b-41d4-a716-446655440001",
+      "order_id": "ord-650e8400-e29b-41d4-a716-446655440001",
+      "user_id": "usr-550e8400-e29b-41d4-a716-446655440000",
+      "delivery_address": "123 Main St, Apt 4B, New York, NY 10001, USA",
+      "status": "PAYMENT_PENDING",
+      "items": [
+        {
+          "product_id": "prd-750e8400-e29b-41d4-a716-446655440002",
+          "product_name": "MacBook Pro 16",
+          "quantity": 1,
+          "unit_price": "2499.99",
+          "subtotal": "2499.99"
+        }
+      ],
+      "total_amount": "2499.99",
+      "payment_details": null,
+      "created_at": "2026-01-22T10:25:00Z",
+      "updated_at": "2026-01-22T10:25:00Z",
+      "status_history": [],
+      "entity_type": "ORDER"
+    },
+    {
+      "entity_type": "Order (by user)",
+      "PK": "ORDERS#usr-550e8400-e29b-41d4-a716-446655440000",
+      "SK": "ORDER#ord-650e8400-e29b-41d4-a716-446655440001",
+      "order_id": "ord-650e8400-e29b-41d4-a716-446655440001",
+      "user_id": "usr-550e8400-e29b-41d4-a716-446655440000",
+      "delivery_address": "123 Main St, Apt 4B, New York, NY 10001, USA",
+      "status": "PAYMENT_PENDING",
+      "items": [
+        {
+          "product_id": "prd-750e8400-e29b-41d4-a716-446655440002",
+          "product_name": "MacBook Pro 16",
+          "quantity": 1,
+          "unit_price": "2499.99",
+          "subtotal": "2499.99"
+        }
+      ],
+      "total_amount": "2499.99",
+      "payment_details": null,
+      "created_at": "2026-01-22T10:25:00Z",
+      "updated_at": "2026-01-22T10:25:00Z",
+      "status_history": [],
+      "entity_type": "ORDER"
+    }
+  ],
+  "notes": [
+    "Single table design with no GSI or LSI",
+    "User data is denormalized across 2 access patterns (email and user_id)",
+    "Order data is denormalized across 2 access patterns (user_id and status)",
+    "Orders start at PAYMENT_PENDING status when created",
+    "STATUS#{status} pattern uses composite SK with date (yyyy-mm-dd) for chronological ordering",
+    "All queries use PK + SK for O(1) or O(log n) performance",
+    "No scans required for any access pattern"
+  ]
+}

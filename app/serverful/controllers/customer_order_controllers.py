@@ -12,7 +12,9 @@ async def create_order(
     order_service: OrderServiceInstance,
 ) -> GenericResponse:
     """Create a new order for the authenticated user"""
-    pass
+    user_id = request.state.current_user["user_id"]
+    await order_service.create_order(order_request)
+    return GenericResponse(message="Order created successfully")
 
 @order_router.get("", response_model=OrderListResponse, status_code=status.HTTP_200_OK)
 async def get_user_orders(
@@ -20,7 +22,9 @@ async def get_user_orders(
     order_service: OrderServiceInstance,
 ) -> OrderListResponse:
     """Get all orders for the authenticated user"""
-    pass
+    user_id = request.state.current_user["user_id"]
+    orders = await order_service.get_user_orders(user_id)
+    return OrderListResponse(orders=orders, total_count=len(orders))
 
 @order_router.get("/{order_id}", response_model=OrderDTO, status_code=status.HTTP_200_OK)
 async def get_order_by_id(
@@ -29,7 +33,8 @@ async def get_order_by_id(
     order_service: OrderServiceInstance,
 ) -> OrderDTO:
     """Get a specific order by ID for the authenticated user"""
-    pass
+    user_id = request.state.current_user["user_id"]
+    return await order_service.get_order(user_id, order_id)
 
 @order_router.delete("/{order_id}", response_model=GenericResponse, status_code=status.HTTP_200_OK)
 async def cancel_order(
@@ -38,5 +43,17 @@ async def cancel_order(
     order_service: OrderServiceInstance,
 ) -> GenericResponse:
     """Cancel an order by ID for the authenticated user"""
-    pass
+    user_id = request.state.current_user["user_id"]
+    await order_service.cancel_order(user_id, order_id)
+    return GenericResponse(message="Order cancelled successfully")
+
+@order_router.get("/track/{order_id}", response_model=OrderDTO, status_code=status.HTTP_200_OK)
+async def track_order(
+    request: Request,
+    order_id: str,
+    order_service: OrderServiceInstance,
+) -> OrderDTO:
+    """Track order by verifying user ownership"""
+    user_id = request.state.current_user["user_id"]
+    return await order_service.get_order(user_id, order_id)
 

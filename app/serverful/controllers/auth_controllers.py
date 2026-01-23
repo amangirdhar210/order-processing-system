@@ -10,7 +10,8 @@ async def register(
     auth_service: AuthServiceInstance,
 ) -> GenericResponse:
     """Register a new user account"""
-    pass
+    await auth_service.register_user(user_request)
+    return GenericResponse(message="User created successfully, please login")
 
 @auth_router.post("/login", response_model=LoginUserResponse, status_code=status.HTTP_200_OK)
 async def login(
@@ -18,4 +19,4 @@ async def login(
     auth_service: AuthServiceInstance,
 ) -> LoginUserResponse:
     """Authenticate user and return access token"""
-    pass
+    return await auth_service.login_user(login_request)

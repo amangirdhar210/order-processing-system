@@ -8,7 +8,10 @@ class OrderService:
     async def cancel_order(self,user_id, order_id):
         pass
 
-    async def get_order(self, user_id, order_id):
+    async def get_order_by_id(self, order_id):
+        pass
+
+    async def track_order_status(self, order_id):
         pass
 
     async def get_user_orders(self, user_id):

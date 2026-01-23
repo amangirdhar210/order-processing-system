@@ -99,3 +99,10 @@ class UpdateFulfilmentRequest(BaseModel):
 class OrderListResponse(BaseModel):
     orders: List[OrderDTO]
     total_count: int
+
+
+class OrderStatusResponse(BaseModel):
+    order_id: str
+    status: OrderStatus
+    created_at: int
+    updated_at: int

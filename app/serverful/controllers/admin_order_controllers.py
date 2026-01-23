@@ -13,7 +13,7 @@ async def process_payment(
     order_service: OrderServiceInstance,
 ) -> OrderDTO:
     """Process payment for an order"""
-    pass
+    return await order_service.confirm_payment(order_id, payment_request)
 
 @staff_router.patch("/{order_id}/fulfilment", response_model=GenericResponse, status_code=status.HTTP_200_OK)
 async def update_fulfilment(
@@ -22,14 +22,33 @@ async def update_fulfilment(
     order_service: OrderServiceInstance,
 ) -> GenericResponse:
     """Update fulfilment status of an order"""
-    pass
+    action = fulfilment_request.action
+    
+    action_map = {
+        "start": order_service.start_fulfilment,
+        "complete": order_service.complete_fulfilment,
+        "cancel": order_service.cancel_fulfilment,
+    }
+    
+    await action_map[action](order_id)
+    
+    return GenericResponse(message=f"Fulfilment {action}ed successfully")
 
 @staff_router.get("/all", response_model=OrderListResponse, status_code=status.HTTP_200_OK)
 async def get_all_orders(
     order_service: OrderServiceInstance,
 ) -> OrderListResponse:
     """Get all orders across all users"""
-    pass
+    orders = await order_service.get_orders_by_status(None)
+    return OrderListResponse(orders=orders, total_count=len(orders))
+
+@staff_router.get("/order/{order_id}", response_model=OrderDTO, status_code=status.HTTP_200_OK)
+async def get_order_by_id(
+    order_id: str,
+    order_service: OrderServiceInstance,
+) -> OrderDTO:
+    """Get order details by order ID without user ID"""
+    return await order_service.get_order_by_id(order_id)
 
 @staff_router.get("/{order_status}", response_model=OrderListResponse, status_code=status.HTTP_200_OK)
 async def get_all_orders_by_status(
@@ -37,4 +56,5 @@ async def get_all_orders_by_status(
     order_service: OrderServiceInstance,
 ) -> OrderListResponse:
     """Get all orders filtered by status"""
-    pass
+    orders = await order_service.get_orders_by_status(order_status)
+    return OrderListResponse(orders=orders, total_count=len(orders))

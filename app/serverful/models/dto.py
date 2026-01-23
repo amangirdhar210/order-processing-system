@@ -90,3 +90,12 @@ class OrderDTO(BaseModel):
 
 class GenericResponse(BaseModel):
     message: str
+
+
+class UpdateFulfilmentRequest(BaseModel):
+    action: str = Field(pattern="^(start|complete|cancel)$")
+
+
+class OrderListResponse(BaseModel):
+    orders: List[OrderDTO]
+    total_count: int

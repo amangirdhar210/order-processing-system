@@ -29,6 +29,12 @@
       "pk": "ORDERS#<user_id>",
       "sk": "ORDER#<order_id>",
       "operation": "Query"
+    },
+    {
+      "pattern": "Get order by order_id (admin/staff)",
+      "pk": "ORDER#<order_id>",
+      "sk": "DETAILS",
+      "operation": "Query"
     }
   ],
   "entity_examples": [
@@ -103,12 +109,36 @@
       "updated_at": "2026-01-22T10:25:00Z",
       "status_history": [],
       "entity_type": "ORDER"
+    },
+    {
+      "entity_type": "Order (by order_id for admin/staff)",
+      "PK": "ORDER#ord-650e8400-e29b-41d4-a716-446655440001",
+      "SK": "DETAILS",
+      "order_id": "ord-650e8400-e29b-41d4-a716-446655440001",
+      "user_id": "usr-550e8400-e29b-41d4-a716-446655440000",
+      "delivery_address": "123 Main St, Apt 4B, New York, NY 10001, USA",
+      "status": "PAYMENT_PENDING",
+      "items": [
+        {
+          "product_id": "prd-750e8400-e29b-41d4-a716-446655440002",
+          "product_name": "MacBook Pro 16",
+          "quantity": 1,
+          "unit_price": "2499.99",
+          "subtotal": "2499.99"
+        }
+      ],
+      "total_amount": "2499.99",
+      "payment_details": null,
+      "created_at": "2026-01-22T10:25:00Z",
+      "updated_at": "2026-01-22T10:25:00Z",
+      "status_history": [],
+      "entity_type": "ORDER"
     }
   ],
   "notes": [
     "Single table design with no GSI or LSI",
     "User data is denormalized across 2 access patterns (email and user_id)",
-    "Order data is denormalized across 2 access patterns (user_id and status)",
+    "Order data is denormalized across 3 access patterns (user_id, status, and order_id)",
     "Orders start at PAYMENT_PENDING status when created",
     "STATUS#{status} pattern uses composite SK with date (yyyy-mm-dd) for chronological ordering",
     "All queries use PK + SK for O(1) or O(log n) performance",

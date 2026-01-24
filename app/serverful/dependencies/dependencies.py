@@ -3,6 +3,7 @@ from fastapi import Depends, Request
 from app.serverful.repositories.user_repository import UserRepository
 from app.serverful.repositories.order_repository import OrderRepository
 from app.serverful.services.auth_service import AuthService
+from app.serverful.services.user_service import UserService
 from app.serverful.services.order_service import OrderService
 from app.serverful.services.sns_service import SnsService
 
@@ -27,6 +28,10 @@ def get_auth_service(request: Request) -> AuthService:
     return request.app.state.auth_service
 
 
+def get_user_service(request: Request) -> UserService:
+    return request.app.state.user_service
+
+
 def get_order_service(request: Request) -> OrderService:
     return request.app.state.order_service
 
@@ -40,5 +45,6 @@ SNSClientResource = Annotated[Any, Depends(get_sns_client)]
 UserRepoInstance = Annotated[UserRepository, Depends(get_user_repository)]
 OrderRepoInstance = Annotated[OrderRepository, Depends(get_order_repository)]
 AuthServiceInstance = Annotated[AuthService, Depends(get_auth_service)]
+UserServiceInstance = Annotated[UserService, Depends(get_user_service)]
 OrderServiceInstance = Annotated[OrderService, Depends(get_order_service)]
 SNSServiceInstance = Annotated[SnsService, Depends(get_sns_service)]

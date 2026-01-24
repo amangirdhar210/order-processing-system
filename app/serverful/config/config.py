@@ -10,8 +10,8 @@ class Settings:
     JWT_EXPIRATION_HOURS: int = 24
 
     AWS_REGION: str = os.getenv("AWS_REGION", "us-east-1")
-    DYNAMODB_TABLE_NAME: str = os.getenv("DYNAMODB_TABLE_NAME", "order_processing_system")
-    SNS_TOPIC_ARN: str = os.getenv("SNS_TOPIC_ARN", "")
+    DYNAMODB_TABLE_NAME: str = os.getenv("DYNAMODB_TABLE_NAME", "order-processing-local")
+    SNS_TOPIC_ARN: str = os.getenv("SNS_TOPIC_ARN", "arn:aws:sns:us-east-1:278273886744:order-events-local")
 
     BCRYPT_ROUNDS: int = 12
 

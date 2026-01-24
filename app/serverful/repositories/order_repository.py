@@ -2,7 +2,6 @@ from typing import List, Optional
 import asyncio
 from datetime import datetime, timezone
 from decimal import Decimal
-from boto3.dynamodb.types import TypeSerializer
 from app.serverful.models.models import Order, OrderItem, PaymentDetails, StatusChange, OrderStatus
 
 
@@ -12,7 +11,6 @@ class OrderRepository:
         self.dynamodb_resource = dynamodb_resource
         self.table = dynamodb_resource.Table(table_name)
         self.client = dynamodb_resource.meta.client
-        self.serializer = TypeSerializer()
 
     async def create(self, order: Order) -> None:
         date_prefix = datetime.fromtimestamp(order.created_at, timezone.utc).strftime("%Y-%m-%d")
@@ -21,7 +19,7 @@ class OrderRepository:
             "order_id": order.order_id,
             "user_id": order.user_id,
             "delivery_address": order.delivery_address,
-            "status": order.status.value,
+            "order_status": order.status.value,
             "items": [{
                 "product_id": item.product_id,
                 "product_name": item.product_name,
@@ -47,13 +45,16 @@ class OrderRepository:
         item_by_user = {"PK": f"ORDERS#{order.user_id}", "SK": f"ORDER#{order.order_id}", **base_item}
         item_by_order_id = {"PK": f"ORDER#{order.order_id}", "SK": "DETAILS", **base_item}
         
-        transact_items = [
-            {"Put": {"TableName": self.table.table_name, "Item": {k: self.serializer.serialize(v) for k, v in item_by_status.items()}}},
-            {"Put": {"TableName": self.table.table_name, "Item": {k: self.serializer.serialize(v) for k, v in item_by_user.items()}}},
-            {"Put": {"TableName": self.table.table_name, "Item": {k: self.serializer.serialize(v) for k, v in item_by_order_id.items()}}}
-        ]
+        def do_transaction():
+            self.client.transact_write_items(
+                TransactItems=[
+                    {"Put": {"TableName": self.table.table_name, "Item": item_by_status}},
+                    {"Put": {"TableName": self.table.table_name, "Item": item_by_user}},
+                    {"Put": {"TableName": self.table.table_name, "Item": item_by_order_id}}
+                ]
+            )
         
-        await asyncio.to_thread(self.client.transact_write_items, TransactItems=transact_items)
+        await asyncio.to_thread(do_transaction)
 
     async def get_by_user_and_order(self, user_id: str, order_id: str) -> Optional[Order]:
         response = await asyncio.to_thread(
@@ -122,7 +123,7 @@ class OrderRepository:
             "order_id": order.order_id,
             "user_id": order.user_id,
             "delivery_address": order.delivery_address,
-            "status": order.status.value,
+            "order_status": order.status.value,
             "items": [{
                 "product_id": item.product_id,
                 "product_name": item.product_name,
@@ -150,12 +151,12 @@ class OrderRepository:
             }
         
         update_expression_parts = [
-            "status = :status",
+            "order_status = :order_status",
             "updated_at = :updated_at",
             "status_history = :status_history"
         ]
         expression_values = {
-            ":status": order.status.value,
+            ":order_status": order.status.value,
             ":updated_at": order.updated_at,
             ":status_history": [{
                 "from_status": sc.from_status.value,
@@ -176,24 +177,27 @@ class OrderRepository:
         
         update_expression = "SET " + ", ".join(update_expression_parts)
         
-        transact_items = [
-            {"Delete": {"TableName": self.table.table_name, "Key": {k: self.serializer.serialize(v) for k, v in {"PK": f"STATUS#{old_status.value}", "SK": f"{date_prefix}#ORDER#{order.order_id}"}.items()}}},
-            {"Put": {"TableName": self.table.table_name, "Item": {k: self.serializer.serialize(v) for k, v in new_item_by_status.items()}}},
-            {"Update": {
-                "TableName": self.table.table_name,
-                "Key": {k: self.serializer.serialize(v) for k, v in {"PK": f"ORDERS#{order.user_id}", "SK": f"ORDER#{order.order_id}"}.items()},
-                "UpdateExpression": update_expression,
-                "ExpressionAttributeValues": {k: self.serializer.serialize(v) for k, v in expression_values.items()}
-            }},
-            {"Update": {
-                "TableName": self.table.table_name,
-                "Key": {k: self.serializer.serialize(v) for k, v in {"PK": f"ORDER#{order.order_id}", "SK": "DETAILS"}.items()},
-                "UpdateExpression": update_expression,
-                "ExpressionAttributeValues": {k: self.serializer.serialize(v) for k, v in expression_values.items()}
-            }}
-        ]
+        def do_transaction():
+            self.client.transact_write_items(
+                TransactItems=[
+                    {"Delete": {"TableName": self.table.table_name, "Key": {"PK": f"STATUS#{old_status.value}", "SK": f"{date_prefix}#ORDER#{order.order_id}"}}},
+                    {"Put": {"TableName": self.table.table_name, "Item": new_item_by_status}},
+                    {"Update": {
+                        "TableName": self.table.table_name,
+                        "Key": {"PK": f"ORDERS#{order.user_id}", "SK": f"ORDER#{order.order_id}"},
+                        "UpdateExpression": update_expression,
+                        "ExpressionAttributeValues": expression_values
+                    }},
+                    {"Update": {
+                        "TableName": self.table.table_name,
+                        "Key": {"PK": f"ORDER#{order.order_id}", "SK": "DETAILS"},
+                        "UpdateExpression": update_expression,
+                        "ExpressionAttributeValues": expression_values
+                    }}
+                ]
+            )
         
-        await asyncio.to_thread(self.client.transact_write_items, TransactItems=transact_items)
+        await asyncio.to_thread(do_transaction)
 
     async def delete(self, user_id: str, order_id: str, status: OrderStatus) -> None:
         order = await self.get_by_order_id(order_id)
@@ -202,18 +206,16 @@ class OrderRepository:
         
         date_prefix = datetime.fromtimestamp(order.created_at, timezone.utc).strftime("%Y-%m-%d")
         
-        keys = [
-            {"PK": f"STATUS#{status.value}", "SK": f"{date_prefix}#ORDER#{order_id}"},
-            {"PK": f"ORDERS#{user_id}", "SK": f"ORDER#{order_id}"},
-            {"PK": f"ORDER#{order_id}", "SK": "DETAILS"}
-        ]
+        def do_transaction():
+            self.client.transact_write_items(
+                TransactItems=[
+                    {"Delete": {"TableName": self.table.table_name, "Key": {"PK": f"STATUS#{status.value}", "SK": f"{date_prefix}#ORDER#{order_id}"}}},
+                    {"Delete": {"TableName": self.table.table_name, "Key": {"PK": f"ORDERS#{user_id}", "SK": f"ORDER#{order_id}"}}},
+                    {"Delete": {"TableName": self.table.table_name, "Key": {"PK": f"ORDER#{order_id}", "SK": "DETAILS"}}}
+                ]
+            )
         
-        transact_items = [
-            {"Delete": {"TableName": self.table.table_name, "Key": {k: self.serializer.serialize(v) for k, v in key.items()}}}
-            for key in keys
-        ]
-        
-        await asyncio.to_thread(self.client.transact_write_items, TransactItems=transact_items)
+        await asyncio.to_thread(do_transaction)
 
     def _unmarshal_order(self, item: dict) -> Order:
         items = [OrderItem(
@@ -245,7 +247,7 @@ class OrderRepository:
             order_id=item["order_id"],
             user_id=item["user_id"],
             delivery_address=item["delivery_address"],
-            status=OrderStatus(item["status"]),
+            status=OrderStatus(item["order_status"]),
             items=items,
             total_amount=Decimal(item["total_amount"]),
             payment_details=payment_details,

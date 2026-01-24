@@ -22,18 +22,40 @@ class RegisterUserRequest(BaseModel):
     password: str = Field(min_length=8, max_length=200)
 
 
+class CreateStaffRequest(BaseModel):
+    first_name: str = Field(min_length=2, max_length=50)
+    last_name: str = Field(min_length=2, max_length=50)
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=200)
+    role: str = Field(pattern="^(staff|admin)$")
+
+
+class LoginUserDTO(BaseModel):
+    id: str = Field(min_length=1)
+    first_name: str = Field(min_length=2, max_length=50)
+    last_name: str = Field(min_length=2, max_length=50)
+    email: EmailStr
+    role: str
+
+
 class UserDTO(BaseModel):
     id: str = Field(min_length=1)
     first_name: str = Field(min_length=2, max_length=50)
     last_name: str = Field(min_length=2, max_length=50)
     email: EmailStr
+    role: str
     created_at: int = Field(gt=0)
     updated_at: int = Field(gt=0)
 
 
+class UserListDTO(BaseModel):
+    users: List[UserDTO]
+    count: int
+
+
 class LoginUserResponse(BaseModel):
     token: str = Field(min_length=1)
-    user: UserDTO
+    user: LoginUserDTO
 
 
 class OrderItemDTO(BaseModel):
@@ -59,7 +81,6 @@ class OrderItemDTO(BaseModel):
 
 
 class CreateOrderRequest(BaseModel):
-    user_id: str = Field(min_length=1, max_length=100)
     delivery_address: str = Field(min_length=10, max_length=500)
     items: List[OrderItemDTO] = Field(min_items=1)
 

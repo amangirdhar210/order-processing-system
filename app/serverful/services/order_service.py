@@ -13,8 +13,8 @@ class OrderService:
         self.user_repo = user_repository
         self.sns_service = sns_service
 
-    async def create_order(self, order_req: CreateOrderRequest) -> None:
-        user = await self.user_repo.get_by_id(order_req.user_id)
+    async def create_order(self, user_id: str, order_req: CreateOrderRequest) -> None:
+        user = await self.user_repo.get_by_id(user_id)
         if not user:
             raise ApplicationError(ErrorCode.USER_NOT_FOUND)
         
@@ -26,7 +26,7 @@ class OrderService:
         
         order = Order(
             order_id=order_id,
-            user_id=order_req.user_id,
+            user_id=user_id,
             delivery_address=order_req.delivery_address,
             status=OrderStatus.PAYMENT_PENDING,
             items=items,
@@ -36,7 +36,7 @@ class OrderService:
         )
         
         await self.order_repo.create(order)
-        await self._publish_event(NotificationEventType.ORDER_CREATED, order_id, order_req.user_id)
+        await self._publish_event(NotificationEventType.ORDER_CREATED, order_id, user_id)
 
     async def cancel_order(self, user_id: str, order_id: str) -> None:
         order = await self.order_repo.get_by_user_and_order(user_id, order_id)

@@ -1,0 +1,904 @@
+---
+openapi: 3.1.0
+info:
+  title: Order Processing System
+  version: 1.0.0
+paths:
+  "/auth/register":
+    post:
+      tags:
+      - Authentication
+      summary: Register
+      description: Register a new user account
+      operationId: register_auth_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/RegisterUserRequest"
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GenericResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/auth/login":
+    post:
+      tags:
+      - Authentication
+      summary: Login
+      description: Authenticate user and return access token
+      operationId: login_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/LoginUserRequest"
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/LoginUserResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/admin/users":
+    get:
+      tags:
+      - Admin - User Management
+      summary: Get All Users
+      operationId: get_all_users_admin_users_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/UserListDTO"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/admin/users/staff":
+    post:
+      tags:
+      - Admin - User Management
+      summary: Create Staff User
+      operationId: create_staff_user_admin_users_staff_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CreateStaffRequest"
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GenericResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/admin/users/{user_id}":
+    delete:
+      tags:
+      - Admin - User Management
+      summary: Delete User
+      operationId: delete_user_admin_users__user_id__delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GenericResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/orders":
+    post:
+      tags:
+      - Customer Orders
+      summary: Create Order
+      description: Create a new order for the authenticated user
+      operationId: create_order_orders_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CreateOrderRequest"
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GenericResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+    get:
+      tags:
+      - Customer Orders
+      summary: Get User Orders
+      description: Get all orders for the authenticated user
+      operationId: get_user_orders_orders_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderListResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/orders/{order_id}":
+    get:
+      tags:
+      - Customer Orders
+      summary: Get Order By Id
+      description: Get a specific order by ID for the authenticated user
+      operationId: get_order_by_id_orders__order_id__get
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Order Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderDTO"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+    delete:
+      tags:
+      - Customer Orders
+      summary: Cancel Order
+      description: Cancel an order by ID for the authenticated user
+      operationId: cancel_order_orders__order_id__delete
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Order Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GenericResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/orders/{order_id}/payment":
+    post:
+      tags:
+      - Customer Orders
+      summary: Process Payment
+      description: Process payment for an order
+      operationId: process_payment_orders__order_id__payment_post
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Order Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ProcessPaymentRequest"
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderDTO"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/orders/track/{order_id}":
+    get:
+      tags:
+      - Customer Orders
+      summary: Track Order
+      description: Track order by verifying user ownership
+      operationId: track_order_orders_track__order_id__get
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Order Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderDTO"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/staff/orders/{order_id}/fulfilment":
+    patch:
+      tags:
+      - Staff Orders
+      summary: Update Fulfilment
+      description: Update fulfilment status of an order
+      operationId: update_fulfilment_staff_orders__order_id__fulfilment_patch
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Order Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/UpdateFulfilmentRequest"
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/GenericResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/staff/orders/all":
+    get:
+      tags:
+      - Staff Orders
+      summary: Get All Orders
+      description: Get all orders across all users
+      operationId: get_all_orders_staff_orders_all_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderListResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/staff/orders/order/{order_id}":
+    get:
+      tags:
+      - Staff Orders
+      summary: Get Order By Id
+      description: Get order details by order ID without user ID
+      operationId: get_order_by_id_staff_orders_order__order_id__get
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Order Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderDTO"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+  "/staff/orders/{order_status}":
+    get:
+      tags:
+      - Staff Orders
+      summary: Get All Orders By Status
+      description: Get all orders filtered by status
+      operationId: get_all_orders_by_status_staff_orders__order_status__get
+      parameters:
+      - name: order_status
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/OrderStatus"
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderListResponse"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+components:
+  schemas:
+    CreateOrderRequest:
+      properties:
+        user_id:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: User Id
+        delivery_address:
+          type: string
+          maxLength: 500
+          minLength: 10
+          title: Delivery Address
+        items:
+          items:
+            "$ref": "#/components/schemas/OrderItemDTO-Input"
+          type: array
+          minItems: 1
+          title: Items
+      type: object
+      required:
+      - user_id
+      - delivery_address
+      - items
+      title: CreateOrderRequest
+    CreateStaffRequest:
+      properties:
+        first_name:
+          type: string
+          maxLength: 50
+          minLength: 2
+          title: First Name
+        last_name:
+          type: string
+          maxLength: 50
+          minLength: 2
+          title: Last Name
+        email:
+          type: string
+          format: email
+          title: Email
+        password:
+          type: string
+          maxLength: 200
+          minLength: 8
+          title: Password
+        role:
+          type: string
+          pattern: "^(staff|admin)$"
+          title: Role
+      type: object
+      required:
+      - first_name
+      - last_name
+      - email
+      - password
+      - role
+      title: CreateStaffRequest
+    GenericResponse:
+      properties:
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - message
+      title: GenericResponse
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            "$ref": "#/components/schemas/ValidationError"
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    LoginUserRequest:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+        password:
+          type: string
+          maxLength: 200
+          minLength: 8
+          title: Password
+      type: object
+      required:
+      - email
+      - password
+      title: LoginUserRequest
+    LoginUserResponse:
+      properties:
+        token:
+          type: string
+          minLength: 1
+          title: Token
+        user:
+          "$ref": "#/components/schemas/UserDTO"
+      type: object
+      required:
+      - token
+      - user
+      title: LoginUserResponse
+    OrderDTO:
+      properties:
+        order_id:
+          type: string
+          title: Order Id
+        user_id:
+          type: string
+          title: User Id
+        delivery_address:
+          type: string
+          title: Delivery Address
+        status:
+          "$ref": "#/components/schemas/OrderStatus"
+        items:
+          items:
+            "$ref": "#/components/schemas/OrderItemDTO-Output"
+          type: array
+          title: Items
+        total_amount:
+          type: string
+          pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+          title: Total Amount
+        payment_details:
+          anyOf:
+          - "$ref": "#/components/schemas/PaymentDetailsDTO"
+          - type: 'null'
+        created_at:
+          type: integer
+          title: Created At
+        updated_at:
+          type: integer
+          title: Updated At
+      type: object
+      required:
+      - order_id
+      - user_id
+      - delivery_address
+      - status
+      - items
+      - total_amount
+      - created_at
+      - updated_at
+      title: OrderDTO
+    OrderItemDTO-Input:
+      properties:
+        product_id:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Product Id
+        product_name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Product Name
+        quantity:
+          type: integer
+          maximum: 1000
+          exclusiveMinimum: 0
+          title: Quantity
+        unit_price:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0
+          - type: string
+            pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+          title: Unit Price
+        subtotal:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0
+          - type: string
+            pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+          title: Subtotal
+      type: object
+      required:
+      - product_id
+      - product_name
+      - quantity
+      - unit_price
+      - subtotal
+      title: OrderItemDTO
+    OrderItemDTO-Output:
+      properties:
+        product_id:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Product Id
+        product_name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Product Name
+        quantity:
+          type: integer
+          maximum: 1000
+          exclusiveMinimum: 0
+          title: Quantity
+        unit_price:
+          type: string
+          pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+          title: Unit Price
+        subtotal:
+          type: string
+          pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+          title: Subtotal
+      type: object
+      required:
+      - product_id
+      - product_name
+      - quantity
+      - unit_price
+      - subtotal
+      title: OrderItemDTO
+    OrderListResponse:
+      properties:
+        orders:
+          items:
+            "$ref": "#/components/schemas/OrderDTO"
+          type: array
+          title: Orders
+        total_count:
+          type: integer
+          title: Total Count
+      type: object
+      required:
+      - orders
+      - total_count
+      title: OrderListResponse
+    OrderStatus:
+      type: string
+      enum:
+      - PAYMENT_PENDING
+      - PAYMENT_CONFIRMED
+      - FULFILLMENT_IN_PROGRESS
+      - FULFILLED
+      - PAYMENT_FAILED
+      - FULFILLMENT_FAILED
+      title: OrderStatus
+    PaymentDetailsDTO:
+      properties:
+        payment_method:
+          type: string
+          title: Payment Method
+        transaction_id:
+          type: string
+          title: Transaction Id
+        payment_status:
+          type: string
+          title: Payment Status
+        processed_at:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Processed At
+      type: object
+      required:
+      - payment_method
+      - transaction_id
+      - payment_status
+      title: PaymentDetailsDTO
+    PaymentStatus:
+      type: string
+      enum:
+      - success
+      - fail
+      title: PaymentStatus
+    ProcessPaymentRequest:
+      properties:
+        payment_method:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Payment Method
+        payment_status:
+          "$ref": "#/components/schemas/PaymentStatus"
+      type: object
+      required:
+      - payment_method
+      - payment_status
+      title: ProcessPaymentRequest
+    RegisterUserRequest:
+      properties:
+        first_name:
+          type: string
+          maxLength: 50
+          minLength: 2
+          title: First Name
+        last_name:
+          type: string
+          maxLength: 50
+          minLength: 2
+          title: Last Name
+        email:
+          type: string
+          format: email
+          title: Email
+        password:
+          type: string
+          maxLength: 200
+          minLength: 8
+          title: Password
+      type: object
+      required:
+      - first_name
+      - last_name
+      - email
+      - password
+      title: RegisterUserRequest
+    UpdateFulfilmentRequest:
+      properties:
+        action:
+          type: string
+          pattern: "^(start|complete|cancel)$"
+          title: Action
+      type: object
+      required:
+      - action
+      title: UpdateFulfilmentRequest
+    UserDTO:
+      properties:
+        id:
+          type: string
+          minLength: 1
+          title: Id
+        first_name:
+          type: string
+          maxLength: 50
+          minLength: 2
+          title: First Name
+        last_name:
+          type: string
+          maxLength: 50
+          minLength: 2
+          title: Last Name
+        email:
+          type: string
+          format: email
+          title: Email
+        role:
+          type: string
+          title: Role
+        created_at:
+          type: integer
+          exclusiveMinimum: 0
+          title: Created At
+        updated_at:
+          type: integer
+          exclusiveMinimum: 0
+          title: Updated At
+      type: object
+      required:
+      - id
+      - first_name
+      - last_name
+      - email
+      - role
+      - created_at
+      - updated_at
+      title: UserDTO
+    UserListDTO:
+      properties:
+        users:
+          items:
+            "$ref": "#/components/schemas/UserDTO"
+          type: array
+          title: Users
+        count:
+          type: integer
+          title: Count
+      type: object
+      required:
+      - users
+      - count
+      title: UserListDTO
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

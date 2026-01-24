@@ -69,7 +69,7 @@
       "order_id": "ord-650e8400-e29b-41d4-a716-446655440001",
       "user_id": "usr-550e8400-e29b-41d4-a716-446655440000",
       "delivery_address": "123 Main St, Apt 4B, New York, NY 10001, USA",
-      "status": "PAYMENT_PENDING",
+      "order_status": "PAYMENT_PENDING",
       "items": [
         {
           "product_id": "prd-750e8400-e29b-41d4-a716-446655440002",
@@ -93,7 +93,7 @@
       "order_id": "ord-650e8400-e29b-41d4-a716-446655440001",
       "user_id": "usr-550e8400-e29b-41d4-a716-446655440000",
       "delivery_address": "123 Main St, Apt 4B, New York, NY 10001, USA",
-      "status": "PAYMENT_PENDING",
+      "order_status": "PAYMENT_PENDING",
       "items": [
         {
           "product_id": "prd-750e8400-e29b-41d4-a716-446655440002",
@@ -117,7 +117,7 @@
       "order_id": "ord-650e8400-e29b-41d4-a716-446655440001",
       "user_id": "usr-550e8400-e29b-41d4-a716-446655440000",
       "delivery_address": "123 Main St, Apt 4B, New York, NY 10001, USA",
-      "status": "PAYMENT_PENDING",
+      "order_status": "PAYMENT_PENDING",
       "items": [
         {
           "product_id": "prd-750e8400-e29b-41d4-a716-446655440002",

@@ -1,16 +1,16 @@
 from fastapi import APIRouter, status
 from app.serverful.models.dto import RegisterUserRequest, GenericResponse, LoginUserRequest, LoginUserResponse
-from app.serverful.dependencies.dependencies import AuthServiceInstance
+from app.serverful.dependencies.dependencies import AuthServiceInstance, UserServiceInstance
 
 auth_router = APIRouter(prefix="/auth")
 
 @auth_router.post("/register", response_model=GenericResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     user_request: RegisterUserRequest,
-    auth_service: AuthServiceInstance,
+    user_service: UserServiceInstance,
 ) -> GenericResponse:
     """Register a new user account"""
-    await auth_service.register_user(user_request)
+    await user_service.register_user(user_request)
     return GenericResponse(message="User created successfully, please login")
 
 @auth_router.post("/login", response_model=LoginUserResponse, status_code=status.HTTP_200_OK)

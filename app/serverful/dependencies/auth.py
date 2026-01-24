@@ -37,7 +37,7 @@ def require_user(request: Request, authorization: Optional[str] = Header(None)) 
     
     role = request.state.current_user.get("role")
     
-    if role not in ["user", "staff", "admin"]:
+    if role not in ["user"]:
         raise ApplicationError(ErrorCode.INSUFFICIENT_PERMISSIONS, details="Invalid role")
 
 
@@ -48,4 +48,13 @@ def require_staff(request: Request, authorization: Optional[str] = Header(None))
     
     if role not in ["staff", "admin"]:
         raise ApplicationError(ErrorCode.INSUFFICIENT_PERMISSIONS, details="Staff or admin access required")
+
+
+def require_admin(request: Request, authorization: Optional[str] = Header(None)) -> None:
+    verify_token(request, authorization)
+    
+    role = request.state.current_user.get("role")
+    
+    if role != "admin":
+        raise ApplicationError(ErrorCode.INSUFFICIENT_PERMISSIONS, details="Admin access required")
 

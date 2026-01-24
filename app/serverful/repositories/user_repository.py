@@ -1,5 +1,4 @@
 import asyncio
-from boto3.dynamodb.types import TypeSerializer
 
 
 class UserRepository:
@@ -7,7 +6,6 @@ class UserRepository:
         self.dynamodb_resource = dynamodb_resource
         self.table = dynamodb_resource.Table(table_name)
         self.client = dynamodb_resource.meta.client
-        self.serializer = TypeSerializer()
 
     async def create(self, user):
         item_by_email = {
@@ -36,22 +34,26 @@ class UserRepository:
             "updated_at": user.updated_at
         }
         
-        transact_items = [
-            {
-                "Put": {
-                    "TableName": self.table.table_name,
-                    "Item": {k: self.serializer.serialize(v) for k, v in item_by_email.items()}
-                }
-            },
-            {
-                "Put": {
-                    "TableName": self.table.table_name,
-                    "Item": {k: self.serializer.serialize(v) for k, v in item_by_id.items()}
-                }
-            }
-        ]
+        def do_transaction():
+            self.client.transact_write_items(
+                TransactItems=[
+                    {
+                        "Put": {
+                            "TableName": self.table.table_name,
+                            "Item": item_by_email,
+                            "ConditionExpression": "attribute_not_exists(PK)"
+                        }
+                    },
+                    {
+                        "Put": {
+                            "TableName": self.table.table_name,
+                            "Item": item_by_id
+                        }
+                    }
+                ]
+            )
         
-        await asyncio.to_thread(self.client.transact_write_items, TransactItems=transact_items)
+        await asyncio.to_thread(do_transaction)
 
     async def get_by_email(self, email):
         response = await asyncio.to_thread(
@@ -97,22 +99,37 @@ class UserRepository:
             "SK": "PROFILE"
         }
         
-        transact_items = [
-            {
-                "Delete": {
-                    "TableName": self.table.table_name,
-                    "Key": {k: self.serializer.serialize(v) for k, v in key_by_email.items()}
-                }
-            },
-            {
-                "Delete": {
-                    "TableName": self.table.table_name,
-                    "Key": {k: self.serializer.serialize(v) for k, v in key_by_id.items()}
-                }
-            }
-        ]
+        def do_transaction():
+            self.client.transact_write_items(
+                TransactItems=[
+                    {
+                        "Delete": {
+                            "TableName": self.table.table_name,
+                            "Key": key_by_email
+                        }
+                    },
+                    {
+                        "Delete": {
+                            "TableName": self.table.table_name,
+                            "Key": key_by_id
+                        }
+                    }
+                ]
+            )
         
-        await asyncio.to_thread(self.client.transact_write_items, TransactItems=transact_items)
+        await asyncio.to_thread(do_transaction)
+
+    async def get_all(self):
+        response = await asyncio.to_thread(
+            self.table.scan,
+            FilterExpression="SK = :sk",
+            ExpressionAttributeValues={
+                ":sk": "PROFILE"
+            }
+        )
+        
+        items = response.get("Items", [])
+        return [self._unmarshal_user(item) for item in items]
 
     def _unmarshal_user(self, item):
         from app.serverful.models.models import User

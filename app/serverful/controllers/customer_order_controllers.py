@@ -13,7 +13,7 @@ async def create_order(
 ) -> GenericResponse:
     """Create a new order for the authenticated user"""
     user_id = request.state.current_user["user_id"]
-    await order_service.create_order(order_request)
+    await order_service.create_order(user_id, order_request)
     return GenericResponse(message="Order created successfully")
 
 @order_router.get("", response_model=OrderListResponse, status_code=status.HTTP_200_OK)

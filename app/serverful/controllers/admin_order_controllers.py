@@ -1,8 +1,14 @@
 from fastapi import APIRouter, Depends, status
-from app.serverful.models.dto import UpdateFulfilmentRequest, OrderDTO, OrderListResponse, GenericResponse
-from app.serverful.models.models import OrderStatus
+from app.serverful.models.dto import UpdateFulfilmentRequest, GenericResponse
+from app.serverful.models.models import OrderStatus, Order
 from app.serverful.dependencies.auth import require_staff
 from app.serverful.dependencies.dependencies import OrderServiceInstance
+from typing import List
+from pydantic import BaseModel
+
+class OrderListResponse(BaseModel):
+    orders: List[Order]
+    total_count: int
 
 staff_router = APIRouter(prefix="/orders", dependencies=[Depends(require_staff)])
 
@@ -33,11 +39,11 @@ async def get_all_orders(
     orders = await order_service.get_orders_by_status(None)
     return OrderListResponse(orders=orders, total_count=len(orders))
 
-@staff_router.get("/order/{order_id}", response_model=OrderDTO, status_code=status.HTTP_200_OK)
+@staff_router.get("/order/{order_id}", response_model=Order, status_code=status.HTTP_200_OK)
 async def get_order_by_id(
     order_id: str,
     order_service: OrderServiceInstance,
-) -> OrderDTO:
+) -> Order:
     """Get order details by order ID without user ID"""
     return await order_service.get_order_by_id(order_id)
 

@@ -104,14 +104,21 @@ class PaymentDetailsDTO(BaseModel):
     processed_at: Optional[int] = None
 
 
+class StatusChangeDTO(BaseModel):
+    from_status: str
+    to_status: str
+    changed_at: int
+    changed_by: str
+
+
 class OrderDTO(BaseModel):
     order_id: str
-    user_id: str
     delivery_address: str
-    status: OrderStatus
+    status: str
     items: List[OrderItemDTO]
     total_amount: Decimal
     payment_details: Optional[PaymentDetailsDTO] = None
+    status_history: List[StatusChangeDTO] = []
     created_at: int
     updated_at: int
 
@@ -122,11 +129,6 @@ class GenericResponse(BaseModel):
 
 class UpdateFulfilmentRequest(BaseModel):
     action: str = Field(pattern="^(start|complete|cancel)$")
-
-
-class OrderListResponse(BaseModel):
-    orders: List[OrderDTO]
-    total_count: int
 
 
 class OrderStatusResponse(BaseModel):

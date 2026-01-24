@@ -1,13 +1,13 @@
 version = 0.1
 
 [default.deploy.parameters]
-stack_name = "email-process"
+stack_name = "email-proc-st"
 resolve_s3 = true
-s3_prefix = "email-process"
+s3_prefix = "email-proc-st"
+region = "ap-south-1"
 capabilities = "CAPABILITY_IAM"
 parameter_overrides = "Environment=\"dev\" DynamoDBTableName=\"order-processing-system\" SQSQueueArn=\"arn:aws:sqs:ap-south-1:278273886744:order-events\" FromEmail=\"noreply@amangirdhar.me\""
 image_repositories = []
-confirm_changeset = true
 
 [default.global.parameters]
 region = "ap-south-1"

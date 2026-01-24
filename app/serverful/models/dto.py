@@ -1,7 +1,13 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import List, Optional
 from decimal import Decimal
+from enum import Enum
 from app.serverful.models.models import OrderStatus
+
+
+class PaymentStatus(str, Enum):
+    SUCCESS = "success"
+    FAIL = "fail"
 
 
 class LoginUserRequest(BaseModel):
@@ -65,8 +71,9 @@ class CreateOrderRequest(BaseModel):
         return items
 
 
-class ConfirmPaymentRequest(BaseModel):
+class ProcessPaymentRequest(BaseModel):
     payment_method: str = Field(min_length=1, max_length=50)
+    payment_status: PaymentStatus
 
 
 class PaymentDetailsDTO(BaseModel):

@@ -11,29 +11,17 @@ class ErrorCode:
 
     USER_NOT_FOUND = 2001
     USER_ALREADY_EXISTS = 2002
-    INVALID_EMAIL = 2003
-    INVALID_USER_DATA = 2004
 
     ORDER_NOT_FOUND = 3001
-    ORDER_CONFLICT = 3002
-    INVALID_ORDER_DATA = 3003
     INVALID_ORDER_STATUS = 3004
-    INVALID_STATE_TRANSITION = 3005
-    ORDER_ITEMS_EMPTY = 3006
-    INVALID_ORDER_TOTAL = 3007
+    ORDER_CANNOT_BE_CANCELLED = 3008
 
     PAYMENT_FAILED = 4001
     PAYMENT_PROCESSING_ERROR = 4002
-    INVALID_PAYMENT_METHOD = 4003
 
     INVALID_INPUT = 5001
-    MISSING_REQUIRED_FIELD = 5002
-    INVALID_FORMAT = 5003
 
     INTERNAL_ERROR = 9001
-    DATABASE_ERROR = 9002
-    EXTERNAL_SERVICE_ERROR = 9003
-    SQS_ERROR = 9004
 
 
 ERROR_REGISTRY: Dict[int, Dict[str, any]] = {
@@ -65,40 +53,16 @@ ERROR_REGISTRY: Dict[int, Dict[str, any]] = {
         "message": "User with this email already exists",
         "status_code": status.HTTP_409_CONFLICT,
     },
-    ErrorCode.INVALID_EMAIL: {
-        "message": "Invalid email format",
-        "status_code": status.HTTP_400_BAD_REQUEST,
-    },
-    ErrorCode.INVALID_USER_DATA: {
-        "message": "Invalid user data provided",
-        "status_code": status.HTTP_400_BAD_REQUEST,
-    },
     ErrorCode.ORDER_NOT_FOUND: {
         "message": "Order not found",
         "status_code": status.HTTP_404_NOT_FOUND,
-    },
-    ErrorCode.ORDER_CONFLICT: {
-        "message": "Order state conflict - concurrent modification detected",
-        "status_code": status.HTTP_409_CONFLICT,
-    },
-    ErrorCode.INVALID_ORDER_DATA: {
-        "message": "Invalid order data provided",
-        "status_code": status.HTTP_400_BAD_REQUEST,
     },
     ErrorCode.INVALID_ORDER_STATUS: {
         "message": "Invalid order status",
         "status_code": status.HTTP_400_BAD_REQUEST,
     },
-    ErrorCode.INVALID_STATE_TRANSITION: {
-        "message": "Invalid order status transition",
-        "status_code": status.HTTP_409_CONFLICT,
-    },
-    ErrorCode.ORDER_ITEMS_EMPTY: {
-        "message": "Order must contain at least one item",
-        "status_code": status.HTTP_400_BAD_REQUEST,
-    },
-    ErrorCode.INVALID_ORDER_TOTAL: {
-        "message": "Order total does not match sum of items",
+    ErrorCode.ORDER_CANNOT_BE_CANCELLED: {
+        "message": "Order cannot be cancelled in current status",
         "status_code": status.HTTP_400_BAD_REQUEST,
     },
     ErrorCode.PAYMENT_FAILED: {
@@ -109,36 +73,12 @@ ERROR_REGISTRY: Dict[int, Dict[str, any]] = {
         "message": "Error processing payment",
         "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
     },
-    ErrorCode.INVALID_PAYMENT_METHOD: {
-        "message": "Invalid payment method",
-        "status_code": status.HTTP_400_BAD_REQUEST,
-    },
     ErrorCode.INVALID_INPUT: {
         "message": "Invalid input provided",
         "status_code": status.HTTP_400_BAD_REQUEST,
     },
-    ErrorCode.MISSING_REQUIRED_FIELD: {
-        "message": "Missing required field",
-        "status_code": status.HTTP_400_BAD_REQUEST,
-    },
-    ErrorCode.INVALID_FORMAT: {
-        "message": "Invalid format",
-        "status_code": status.HTTP_400_BAD_REQUEST,
-    },
     ErrorCode.INTERNAL_ERROR: {
         "message": "Internal server error",
-        "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-    },
-    ErrorCode.DATABASE_ERROR: {
-        "message": "Database operation failed",
-        "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-    },
-    ErrorCode.EXTERNAL_SERVICE_ERROR: {
-        "message": "External service error",
-        "status_code": status.HTTP_503_SERVICE_UNAVAILABLE,
-    },
-    ErrorCode.SQS_ERROR: {
-        "message": "Failed to send notification to queue",
         "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
     },
 }

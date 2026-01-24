@@ -1,19 +1,10 @@
 from fastapi import APIRouter, Depends, status
-from app.serverful.models.dto import ConfirmPaymentRequest, UpdateFulfilmentRequest, OrderDTO, OrderListResponse, GenericResponse
+from app.serverful.models.dto import UpdateFulfilmentRequest, OrderDTO, OrderListResponse, GenericResponse
 from app.serverful.models.models import OrderStatus
 from app.serverful.dependencies.auth import require_staff
 from app.serverful.dependencies.dependencies import OrderServiceInstance
 
 staff_router = APIRouter(prefix="/orders", dependencies=[Depends(require_staff)])
-
-@staff_router.post("/{order_id}/payment", response_model=OrderDTO, status_code=status.HTTP_200_OK)
-async def process_payment(
-    order_id: str,
-    payment_request: ConfirmPaymentRequest,
-    order_service: OrderServiceInstance,
-) -> OrderDTO:
-    """Process payment for an order"""
-    return await order_service.confirm_payment(order_id, payment_request)
 
 @staff_router.patch("/{order_id}/fulfilment", response_model=GenericResponse, status_code=status.HTTP_200_OK)
 async def update_fulfilment(

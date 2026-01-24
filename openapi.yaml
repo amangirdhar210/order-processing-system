@@ -3,14 +3,26 @@ openapi: 3.1.0
 info:
   title: Order Processing System
   version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+x-postman-variables:
+  - key: user_token
+    value: ""
+    type: string
+  - key: staff_token
+    value: ""
+    type: string
+  - key: admin_token
+    value: ""
+    type: string
 paths:
   "/auth/register":
     post:
       tags:
-      - Authentication
+      - Auth
       summary: Register
-      description: Register a new user account
-      operationId: register_auth_register_post
+      operationId: auth_register
       requestBody:
         content:
           application/json:
@@ -24,19 +36,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/GenericResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
   "/auth/login":
     post:
       tags:
-      - Authentication
+      - Auth
       summary: Login
-      description: Authenticate user and return access token
-      operationId: login_auth_login_post
+      operationId: auth_login
       requestBody:
         content:
           application/json:
@@ -50,27 +55,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/LoginUserResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
   "/admin/users":
     get:
       tags:
-      - Admin - User Management
+      - Admin
       summary: Get All Users
-      operationId: get_all_users_admin_users_get
-      parameters:
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
+      operationId: admin_get_all_users
       responses:
         '200':
           description: Successful Response
@@ -78,27 +68,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/UserListDTO"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
   "/admin/users/staff":
     post:
       tags:
-      - Admin - User Management
+      - Admin
       summary: Create Staff User
-      operationId: create_staff_user_admin_users_staff_post
-      parameters:
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
+      operationId: admin_create_staff
       requestBody:
         required: true
         content:
@@ -112,33 +87,18 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/GenericResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
   "/admin/users/{user_id}":
     delete:
       tags:
-      - Admin - User Management
+      - Admin
       summary: Delete User
-      operationId: delete_user_admin_users__user_id__delete
+      operationId: admin_delete_user
       parameters:
       - name: user_id
         in: path
         required: true
         schema:
           type: string
-          title: User Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
       responses:
         '200':
           description: Successful Response
@@ -146,28 +106,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/GenericResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
   "/orders":
     post:
       tags:
-      - Customer Orders
+      - Orders
       summary: Create Order
-      description: Create a new order for the authenticated user
-      operationId: create_order_orders_post
-      parameters:
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
+      operationId: orders_create
       requestBody:
         required: true
         content:
@@ -181,27 +125,11 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/GenericResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
     get:
       tags:
-      - Customer Orders
+      - Orders
       summary: Get User Orders
-      description: Get all orders for the authenticated user
-      operationId: get_user_orders_orders_get
-      parameters:
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
+      operationId: orders_get_my_orders
       responses:
         '200':
           description: Successful Response
@@ -209,68 +137,36 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/OrderListResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
   "/orders/{order_id}":
     get:
       tags:
-      - Customer Orders
+      - Orders
       summary: Get Order By Id
-      description: Get a specific order by ID for the authenticated user
-      operationId: get_order_by_id_orders__order_id__get
+      operationId: orders_get_order
       parameters:
       - name: order_id
         in: path
         required: true
         schema:
           type: string
-          title: Order Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/OrderDTO"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
+                "$ref": "#/components/schemas/Order"
     delete:
       tags:
-      - Customer Orders
+      - Orders
       summary: Cancel Order
-      description: Cancel an order by ID for the authenticated user
-      operationId: cancel_order_orders__order_id__delete
+      operationId: orders_cancel
       parameters:
       - name: order_id
         in: path
         required: true
         schema:
           type: string
-          title: Order Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
       responses:
         '200':
           description: Successful Response
@@ -278,34 +174,18 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/GenericResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
   "/orders/{order_id}/payment":
     post:
       tags:
-      - Customer Orders
+      - Orders
       summary: Process Payment
-      description: Process payment for an order
-      operationId: process_payment_orders__order_id__payment_post
+      operationId: orders_process_payment
       parameters:
       - name: order_id
         in: path
         required: true
         schema:
           type: string
-          title: Order Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
       requestBody:
         required: true
         content:
@@ -318,70 +198,38 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/OrderDTO"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
+                "$ref": "#/components/schemas/Order"
   "/orders/track/{order_id}":
     get:
       tags:
-      - Customer Orders
+      - Orders
       summary: Track Order
-      description: Track order by verifying user ownership
-      operationId: track_order_orders_track__order_id__get
+      operationId: orders_track
       parameters:
       - name: order_id
         in: path
         required: true
         schema:
           type: string
-          title: Order Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/OrderDTO"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
+                "$ref": "#/components/schemas/Order"
   "/staff/orders/{order_id}/fulfilment":
     patch:
       tags:
-      - Staff Orders
+      - Staff
       summary: Update Fulfilment
-      description: Update fulfilment status of an order
-      operationId: update_fulfilment_staff_orders__order_id__fulfilment_patch
+      operationId: staff_update_fulfilment
       parameters:
       - name: order_id
         in: path
         required: true
         schema:
           type: string
-          title: Order Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
       requestBody:
         required: true
         content:
@@ -395,28 +243,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/GenericResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
   "/staff/orders/all":
     get:
       tags:
-      - Staff Orders
+      - Staff
       summary: Get All Orders
-      description: Get all orders across all users
-      operationId: get_all_orders_staff_orders_all_get
-      parameters:
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
+      operationId: staff_get_all_orders
       responses:
         '200':
           description: Successful Response
@@ -424,68 +256,37 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/OrderListResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
   "/staff/orders/order/{order_id}":
     get:
       tags:
-      - Staff Orders
+      - Staff
       summary: Get Order By Id
-      description: Get order details by order ID without user ID
-      operationId: get_order_by_id_staff_orders_order__order_id__get
+      operationId: staff_get_order
       parameters:
       - name: order_id
         in: path
         required: true
         schema:
           type: string
-          title: Order Id
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/OrderDTO"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
+                "$ref": "#/components/schemas/Order"
   "/staff/orders/{order_status}":
     get:
       tags:
-      - Staff Orders
-      summary: Get All Orders By Status
-      description: Get all orders filtered by status
-      operationId: get_all_orders_by_status_staff_orders__order_status__get
+      - Staff
+      summary: Get Orders By Status
+      operationId: staff_get_orders_by_status
       parameters:
       - name: order_status
         in: path
         required: true
         schema:
           "$ref": "#/components/schemas/OrderStatus"
-      - name: authorization
-        in: header
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Authorization
       responses:
         '200':
           description: Successful Response
@@ -493,21 +294,10 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/OrderListResponse"
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/HTTPValidationError"
 components:
   schemas:
     CreateOrderRequest:
       properties:
-        user_id:
-          type: string
-          maxLength: 100
-          minLength: 1
-          title: User Id
         delivery_address:
           type: string
           maxLength: 500
@@ -515,13 +305,12 @@ components:
           title: Delivery Address
         items:
           items:
-            "$ref": "#/components/schemas/OrderItemDTO-Input"
+            "$ref": "#/components/schemas/OrderItemDTO"
           type: array
           minItems: 1
           title: Items
       type: object
       required:
-      - user_id
       - delivery_address
       - items
       title: CreateOrderRequest
@@ -576,6 +365,37 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
+    LoginUserDTO:
+      properties:
+        id:
+          type: string
+          minLength: 1
+          title: Id
+        first_name:
+          type: string
+          maxLength: 50
+          minLength: 2
+          title: First Name
+        last_name:
+          type: string
+          maxLength: 50
+          minLength: 2
+          title: Last Name
+        email:
+          type: string
+          format: email
+          title: Email
+        role:
+          type: string
+          title: Role
+      type: object
+      required:
+      - id
+      - first_name
+      - last_name
+      - email
+      - role
+      title: LoginUserDTO
     LoginUserRequest:
       properties:
         email:
@@ -599,56 +419,67 @@ components:
           minLength: 1
           title: Token
         user:
-          "$ref": "#/components/schemas/UserDTO"
+          "$ref": "#/components/schemas/LoginUserDTO"
       type: object
       required:
       - token
       - user
       title: LoginUserResponse
-    OrderDTO:
+    Order:
       properties:
         order_id:
           type: string
           title: Order Id
+          default: ''
         user_id:
           type: string
+          maxLength: 100
+          minLength: 1
           title: User Id
         delivery_address:
           type: string
+          maxLength: 500
+          minLength: 10
           title: Delivery Address
         status:
           "$ref": "#/components/schemas/OrderStatus"
         items:
           items:
-            "$ref": "#/components/schemas/OrderItemDTO-Output"
+            "$ref": "#/components/schemas/OrderItem"
           type: array
+          minItems: 1
           title: Items
         total_amount:
           type: string
-          pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+          pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
           title: Total Amount
         payment_details:
           anyOf:
-          - "$ref": "#/components/schemas/PaymentDetailsDTO"
+          - "$ref": "#/components/schemas/PaymentDetails"
           - type: 'null'
+        status_history:
+          items:
+            "$ref": "#/components/schemas/StatusChange"
+          type: array
+          title: Status History
+          default: []
         created_at:
           type: integer
           title: Created At
+          default: 0
         updated_at:
           type: integer
           title: Updated At
+          default: 0
       type: object
       required:
-      - order_id
       - user_id
       - delivery_address
       - status
       - items
       - total_amount
-      - created_at
-      - updated_at
-      title: OrderDTO
-    OrderItemDTO-Input:
+      title: Order
+    OrderItem:
       properties:
         product_id:
           type: string
@@ -666,18 +497,12 @@ components:
           exclusiveMinimum: 0
           title: Quantity
         unit_price:
-          anyOf:
-          - type: number
-            exclusiveMinimum: 0
-          - type: string
-            pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+          type: string
+          pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
           title: Unit Price
         subtotal:
-          anyOf:
-          - type: number
-            exclusiveMinimum: 0
-          - type: string
-            pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+          type: string
+          pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
           title: Subtotal
       type: object
       required:
@@ -686,8 +511,8 @@ components:
       - quantity
       - unit_price
       - subtotal
-      title: OrderItemDTO
-    OrderItemDTO-Output:
+      title: OrderItem
+    OrderItemDTO:
       properties:
         product_id:
           type: string
@@ -705,12 +530,18 @@ components:
           exclusiveMinimum: 0
           title: Quantity
         unit_price:
-          type: string
-          pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0
+          - type: string
+            pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
           title: Unit Price
         subtotal:
-          type: string
-          pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0
+          - type: string
+            pattern: "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
           title: Subtotal
       type: object
       required:
@@ -724,7 +555,7 @@ components:
       properties:
         orders:
           items:
-            "$ref": "#/components/schemas/OrderDTO"
+            "$ref": "#/components/schemas/Order"
           type: array
           title: Orders
         total_count:
@@ -745,16 +576,22 @@ components:
       - PAYMENT_FAILED
       - FULFILLMENT_FAILED
       title: OrderStatus
-    PaymentDetailsDTO:
+    PaymentDetails:
       properties:
         payment_method:
           type: string
+          maxLength: 50
+          minLength: 1
           title: Payment Method
         transaction_id:
           type: string
+          maxLength: 100
+          minLength: 1
           title: Transaction Id
         payment_status:
           type: string
+          maxLength: 50
+          minLength: 1
           title: Payment Status
         processed_at:
           anyOf:
@@ -766,7 +603,7 @@ components:
       - payment_method
       - transaction_id
       - payment_status
-      title: PaymentDetailsDTO
+      title: PaymentDetails
     PaymentStatus:
       type: string
       enum:
@@ -815,6 +652,28 @@ components:
       - email
       - password
       title: RegisterUserRequest
+    StatusChange:
+      properties:
+        from_status:
+          "$ref": "#/components/schemas/OrderStatus"
+        to_status:
+          "$ref": "#/components/schemas/OrderStatus"
+        changed_at:
+          type: integer
+          exclusiveMinimum: 0
+          title: Changed At
+        changed_by:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Changed By
+      type: object
+      required:
+      - from_status
+      - to_status
+      - changed_at
+      - changed_by
+      title: StatusChange
     UpdateFulfilmentRequest:
       properties:
         action:

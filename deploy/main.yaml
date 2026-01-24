@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Order Processing System - Main Stack'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+  JWTSecretKey:
+    Type: String
+    NoEcho: true
+    Description: Secret key for JWT token generation
+
+Resources:
+  DatabaseStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${AWS::StackName}-templates/database.yaml'
+      Parameters:
+        Environment: !Ref Environment
+
+  MessagingStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${AWS::StackName}-templates/messaging.yaml'
+      Parameters:
+        Environment: !Ref Environment
+
+  LambdaStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DatabaseStack
+      - MessagingStack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${AWS::StackName}-templates/lambda.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        DynamoDBTableName: !GetAtt DatabaseStack.Outputs.TableName
+        SQSQueueArn: !GetAtt MessagingStack.Outputs.SQSQueueArn
+        FromEmail: noreply@example.com
+
+  ComputeStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DatabaseStack
+      - MessagingStack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${AWS::StackName}-templates/compute.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        DynamoDBTableName: !GetAtt DatabaseStack.Outputs.TableName
+        SNSTopicArn: !GetAtt MessagingStack.Outputs.SNSTopicArn
+        SQSQueueUrl: !GetAtt MessagingStack.Outputs.SQSQueueUrl
+        JWTSecretKey: !Ref JWTSecretKey
+
+Outputs:
+  ALBEndpoint:
+    Description: Application Load Balancer DNS Name
+    Value: !GetAtt ComputeStack.Outputs.ALBEndpoint
+    Export:
+      Name: !Sub '${AWS::StackName}-ALBEndpoint'
+
+  DynamoDBTableName:
+    Description: DynamoDB Table Name
+    Value: !GetAtt DatabaseStack.Outputs.TableName
+    Export:
+      Name: !Sub '${AWS::StackName}-TableName'
+
+  SNSTopicArn:
+    Description: SNS Topic ARN
+    Value: !GetAtt MessagingStack.Outputs.SNSTopicArn
+    Export:
+      Name: !Sub '${AWS::StackName}-SNSTopicArn'
+
+  EmailProcessorFunctionArn:
+    Description: Email Processor Lambda Function ARN
+    Value: !GetAtt LambdaStack.Outputs.EmailProcessorFunctionArn
+    Export:
+      Name: !Sub '${AWS::StackName}-EmailProcessorArn'

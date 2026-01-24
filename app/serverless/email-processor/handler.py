@@ -15,8 +15,7 @@ email_service = EmailService(table, ses, from_email)
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    processed = 0
-    failed = 0
+    batch_item_failures = []
     
     for record in event['Records']:
         try:
@@ -30,17 +29,14 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             notification = OrderNotificationMessage(**sns_message)
             
             email_service.process_event(notification)
-            processed += 1
             
         except Exception as e:
             print(f"Error processing record: {str(e)}")
             print(f"Record: {record}")
-            failed += 1
+            batch_item_failures.append({
+                "itemIdentifier": record['messageId']
+            })
     
     return {
-        'statusCode': 200,
-        'body': json.dumps({
-            'processed': processed,
-            'failed': failed
-        })
+        "batchItemFailures": batch_item_failures
     }

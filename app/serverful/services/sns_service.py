@@ -1,6 +1,9 @@
 import json
+import logging
 from app.serverful.models.models import NotificationEvent
 from app.serverful.config.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class SnsService:
@@ -18,18 +21,23 @@ class SnsService:
             "occurred_at": event.occurred_at
         }
         
-        self.sns_client.publish(
-            TopicArn=self.topic_arn,
-            Message=json.dumps(message),
-            Subject=f"Order Event: {event.event_type.value}",
-            MessageAttributes={
-                "event_type": {
-                    "DataType": "String",
-                    "StringValue": event.event_type.value
-                },
-                "order_id": {
-                    "DataType": "String",
-                    "StringValue": event.order_id
+        try:
+            response = self.sns_client.publish(
+                TopicArn=self.topic_arn,
+                Message=json.dumps(message),
+                Subject=f"Order Event: {event.event_type.value}",
+                MessageAttributes={
+                    "event_type": {
+                        "DataType": "String",
+                        "StringValue": event.event_type.value
+                    },
+                    "order_id": {
+                        "DataType": "String",
+                        "StringValue": event.order_id
+                    }
                 }
-            }
-        )
+            )
+            logger.info(f"Published SNS event: {event.event_type.value} for order {event.order_id}, MessageId: {response['MessageId']}")
+        except Exception as e:
+            logger.error(f"Failed to publish SNS event: {str(e)}")
+            raise

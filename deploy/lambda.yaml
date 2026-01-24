@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Order Processing System - Email Processor Lambda'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+  
+  DynamoDBTableName:
+    Type: String
+    Description: DynamoDB Table Name
+  
+  SQSQueueArn:
+    Type: String
+    Description: SQS Queue ARN
+  
+  FromEmail:
+    Type: String
+    Description: SES verified email address for sending notifications
+    Default: noreply@example.com
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.11
+    MemorySize: 512
+    Environment:
+      Variables:
+        DYNAMODB_TABLE_NAME: !Ref DynamoDBTableName
+        FROM_EMAIL: !Ref FromEmail
+
+Resources:
+  EmailProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'email-processor-${Environment}'
+      CodeUri: ../app/serverless/email-processor/
+      Handler: handler.lambda_handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DynamoDBTableName
+        - SESCrudPolicy:
+            IdentityName: !Ref FromEmail
+        - SQSPollerPolicy:
+            QueueName: !Select [5, !Split [':', !Ref SQSQueueArn]]
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !Ref SQSQueueArn
+            BatchSize: 10
+            MaximumBatchingWindowInSeconds: 5
+            Enabled: true
+      Tags:
+        Environment: !Ref Environment
+        Application: OrderProcessing
+
+Outputs:
+  EmailProcessorFunctionArn:
+    Description: Email Processor Lambda Function ARN
+    Value: !GetAtt EmailProcessorFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-EmailProcessorArn'
+  
+  EmailProcessorFunctionName:
+    Description: Email Processor Lambda Function Name
+    Value: !Ref EmailProcessorFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-EmailProcessorName'

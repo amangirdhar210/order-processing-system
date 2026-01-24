@@ -208,3 +208,8 @@ __marimo__/
 
 #local temp folder
 *tmp
+
+
+*.aws-sam
+scripts.txt
+deploy.sh

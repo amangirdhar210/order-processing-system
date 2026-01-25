@@ -1,6 +1,10 @@
+import logging
 from typing import Dict, Any
 from models import OrderNotificationMessage
 from repository import UserRepository, OrderRepository
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 class EmailService:
@@ -23,17 +27,17 @@ class EmailService:
     def process_event(self, notification: OrderNotificationMessage) -> None:
         user = self.user_repo.get_user(notification.user_id)
         if not user:
-            print(f"User not found: {notification.user_id}")
+            logger.warning(f"User not found: {notification.user_id}")
             return
         
         order = self.order_repo.get_order(notification.order_id)
         if not order:
-            print(f"Order not found: {notification.order_id}")
+            logger.warning(f"Order not found: {notification.order_id}")
             return
         
         template_fn = self.event_templates.get(notification.event_type)
         if not template_fn:
-            print(f"Unknown event type: {notification.event_type}")
+            logger.warning(f"Unknown event type: {notification.event_type}")
             return
         
         subject, body = template_fn(user, order, notification)
@@ -49,9 +53,9 @@ class EmailService:
                     'Body': {'Html': {'Data': body, 'Charset': 'UTF-8'}}
                 }
             )
-            print(f"Email sent to {to_email}: {subject}")
+            logger.info(f"Email sent to {to_email}: {subject}")
         except Exception as e:
-            print(f"Failed to send email to {to_email}: {str(e)}")
+            logger.error(f"Failed to send email to {to_email}: {str(e)}")
             raise
 
     def _format_order_items(self, order: Dict) -> str:

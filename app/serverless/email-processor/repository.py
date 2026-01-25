@@ -1,4 +1,8 @@
+import logging
 from typing import Dict, Any, Optional
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 class UserRepository:
@@ -18,7 +22,7 @@ class UserRepository:
             items = response.get('Items', [])
             return items[0] if items else None
         except Exception as e:
-            print(f"Error fetching user {user_id}: {str(e)}")
+            logger.error(f"Error fetching user {user_id}: {str(e)}")
             return None
 
 
@@ -39,5 +43,5 @@ class OrderRepository:
             items = response.get('Items', [])
             return items[0] if items else None
         except Exception as e:
-            print(f"Error fetching order {order_id}: {str(e)}")
+            logger.error(f"Error fetching order {order_id}: {str(e)}")
             return None

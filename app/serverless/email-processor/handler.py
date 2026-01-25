@@ -1,10 +1,14 @@
 import json
 import os
 import boto3
+import logging
 from typing import Dict, Any
 from service import EmailService
 from models import OrderNotificationMessage
 from repository import UserRepository, OrderRepository
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 dynamodb = boto3.resource('dynamodb')
@@ -34,8 +38,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             email_service.process_event(notification)
             
         except Exception as e:
-            print(f"Error processing record: {str(e)}")
-            print(f"Record: {record}")
+            logger.error(f"Error processing record: {str(e)}")
+            logger.error(f"Record: {record}")
             batch_item_failures.append({
                 "itemIdentifier": record['messageId']
             })

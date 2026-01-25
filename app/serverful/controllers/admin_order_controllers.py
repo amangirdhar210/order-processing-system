@@ -27,9 +27,15 @@ async def update_fulfilment(
         "cancel": order_service.cancel_fulfilment,
     }
     
+    action_verb_map = {
+        "start": "started",
+        "complete": "completed",
+        "cancel": "cancelled",
+    }
+    
     await action_map[action](order_id)
     
-    return GenericResponse(message=f"Fulfilment {action}ed successfully")
+    return GenericResponse(message=f"Fulfilment {action_verb_map[action]} successfully")
 
 @staff_router.get("/all", response_model=OrderListResponse, status_code=status.HTTP_200_OK)
 async def get_all_orders(

@@ -1,5 +1,6 @@
 import json
 import logging
+from botocore.exceptions import ClientError
 from app.serverful.models.models import NotificationEvent
 from app.serverful.config.config import settings
 
@@ -38,6 +39,6 @@ class SnsService:
                 }
             )
             logger.info(f"Published SNS event: {event.event_type.value} for order {event.order_id}, MessageId: {response['MessageId']}")
-        except Exception as e:
+        except ClientError as e:
             logger.error(f"Failed to publish SNS event: {str(e)}")
             raise

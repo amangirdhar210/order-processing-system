@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import boto3
+from botocore.exceptions import ClientError, BotoCoreError
 from app.serverful.config.config import settings
 from app.serverful.repositories.user_repository import UserRepository
 from app.serverful.repositories.order_repository import OrderRepository
@@ -21,7 +22,7 @@ async def lifespan(app: FastAPI):
         table = dynamodb_resource.Table(settings.DYNAMODB_TABLE_NAME)
         table.load()
         
-    except Exception as e:
+    except (ClientError, BotoCoreError) as e:
         raise RuntimeError(f"Failed to connect to DynamoDB: {str(e)}")
     
     try:
@@ -31,7 +32,7 @@ async def lifespan(app: FastAPI):
         )
         sns_client.get_topic_attributes(TopicArn=settings.SNS_TOPIC_ARN)
         
-    except Exception as e:
+    except (ClientError, BotoCoreError) as e:
         raise RuntimeError(f"Failed to connect to SNS: {str(e)}")
     
     user_repo = UserRepository(

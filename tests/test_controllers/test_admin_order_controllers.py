@@ -64,13 +64,13 @@ class TestAdminOrderControllers:
         mock_order_service.complete_fulfilment = AsyncMock(return_value=None)
         response = client.patch("/orders/order-123/fulfilment", json={"action": "complete"})
         assert response.status_code == 200
-        assert response.json()["message"] == "Fulfilment completeed successfully"
+        assert response.json()["message"] == "Fulfilment completed successfully"
 
     def test_update_fulfilment_cancel_success(self, client, mock_order_service):
         mock_order_service.cancel_fulfilment = AsyncMock(return_value=None)
         response = client.patch("/orders/order-123/fulfilment", json={"action": "cancel"})
         assert response.status_code == 200
-        assert response.json()["message"] == "Fulfilment canceled successfully"
+        assert response.json()["message"] == "Fulfilment cancelled successfully"
 
     def test_update_fulfilment_order_not_found(self, client, mock_order_service):
         mock_order_service.start_fulfilment = AsyncMock(side_effect=ApplicationError(ErrorCode.ORDER_NOT_FOUND))

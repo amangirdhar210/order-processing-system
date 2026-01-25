@@ -4,6 +4,7 @@ import boto3
 from typing import Dict, Any
 from service import EmailService
 from models import OrderNotificationMessage
+from repository import UserRepository, OrderRepository
 
 
 dynamodb = boto3.resource('dynamodb')
@@ -11,7 +12,9 @@ ses = boto3.client('ses')
 table = dynamodb.Table(os.environ['DYNAMODB_TABLE_NAME'])
 from_email = os.environ['FROM_EMAIL']
 
-email_service = EmailService(table, ses, from_email)
+user_repository = UserRepository(table)
+order_repository = OrderRepository(table)
+email_service = EmailService(user_repository, order_repository, ses, from_email)
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:

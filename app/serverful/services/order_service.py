@@ -53,7 +53,8 @@ class OrderService:
         if order.status not in [OrderStatus.PAYMENT_PENDING, OrderStatus.PAYMENT_FAILED]:
             raise ApplicationError(ErrorCode.ORDER_CANNOT_BE_CANCELLED)
         
-        await self.order_repo.delete(user_id, order_id, order.status)
+        await self._update_order_status(order, OrderStatus.ORDER_CANCELLED, "user")
+        await self._publish_event(NotificationEventType.ORDER_CANCELLED, order_id, user_id)
 
     async def get_order_by_id(self, order_id: str) -> Order:
         order = await self.order_repo.get_by_order_id(order_id)
@@ -97,7 +98,7 @@ class OrderService:
         if not order:
             raise ApplicationError(ErrorCode.ORDER_NOT_FOUND)
         
-        if order.status != OrderStatus.PAYMENT_PENDING:
+        if order.status not in [OrderStatus.PAYMENT_PENDING, OrderStatus.PAYMENT_FAILED]:
             raise ApplicationError(ErrorCode.INVALID_ORDER_STATUS)
         
         is_success = payment_req.payment_status.value == "success"
@@ -125,7 +126,8 @@ class OrderService:
         order.status_history.append(status_change)
         order.updated_at = now
         
-        await self.order_repo.update_status(order, OrderStatus.PAYMENT_PENDING)
+        previous_status = status_change.from_status
+        await self.order_repo.update_status(order, previous_status)
         await self._publish_event(event_type, order_id, user_id)
         
         return order

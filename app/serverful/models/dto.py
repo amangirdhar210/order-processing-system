@@ -82,7 +82,7 @@ class OrderItemDTO(BaseModel):
 
 class CreateOrderRequest(BaseModel):
     delivery_address: str = Field(min_length=10, max_length=500)
-    items: List[OrderItemDTO] = Field(min_items=1)
+    items: List[OrderItemDTO] = Field(min_length=1)
 
     @field_validator("items")
     @classmethod

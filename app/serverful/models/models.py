@@ -10,6 +10,7 @@ class OrderStatus(str, Enum):
     FULFILLED = "FULFILLED"
     PAYMENT_FAILED = "PAYMENT_FAILED"
     FULFILLMENT_FAILED = "FULFILLMENT_FAILED"
+    ORDER_CANCELLED = "ORDER_CANCELLED"
 
 class NotificationEventType(str,Enum):
     ORDER_CREATED= "ORDER_CREATED"
@@ -18,6 +19,7 @@ class NotificationEventType(str,Enum):
     FULFILLED= "FULFILLED"
     PAYMENT_FAILED= "PAYMENT_FAILED"
     FULFILLMENT_CANCELLED= "FULFILLMENT_CANCELED"
+    ORDER_CANCELLED= "ORDER_CANCELLED"
 
 class User(BaseModel):
     user_id:str=Field(min_length=32, max_length=40)

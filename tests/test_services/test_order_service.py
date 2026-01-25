@@ -115,22 +115,28 @@ class TestCancelOrder:
     async def test_cancel_order_success_payment_pending(self, order_service, mock_order_repo, sample_order):
         sample_order.status = OrderStatus.PAYMENT_PENDING
         mock_order_repo.get_by_user_and_order.return_value = sample_order
-        mock_order_repo.delete.return_value = None
+        mock_order_repo.update_status.return_value = None
         
         await order_service.cancel_order(sample_order.user_id, sample_order.order_id)
         
         mock_order_repo.get_by_user_and_order.assert_called_once_with(sample_order.user_id, sample_order.order_id)
-        mock_order_repo.delete.assert_called_once_with(sample_order.user_id, sample_order.order_id, OrderStatus.PAYMENT_PENDING)
+        mock_order_repo.update_status.assert_called_once()
+        call_args = mock_order_repo.update_status.call_args[0]
+        assert call_args[0].status == OrderStatus.ORDER_CANCELLED
+        assert call_args[1] == OrderStatus.PAYMENT_PENDING
 
     @pytest.mark.asyncio
     async def test_cancel_order_success_payment_failed(self, order_service, mock_order_repo, sample_order):
         sample_order.status = OrderStatus.PAYMENT_FAILED
         mock_order_repo.get_by_user_and_order.return_value = sample_order
-        mock_order_repo.delete.return_value = None
+        mock_order_repo.update_status.return_value = None
         
         await order_service.cancel_order(sample_order.user_id, sample_order.order_id)
         
-        mock_order_repo.delete.assert_called_once_with(sample_order.user_id, sample_order.order_id, OrderStatus.PAYMENT_FAILED)
+        mock_order_repo.update_status.assert_called_once()
+        call_args = mock_order_repo.update_status.call_args[0]
+        assert call_args[0].status == OrderStatus.ORDER_CANCELLED
+        assert call_args[1] == OrderStatus.PAYMENT_FAILED
 
     @pytest.mark.asyncio
     async def test_cancel_order_not_found(self, order_service, mock_order_repo):

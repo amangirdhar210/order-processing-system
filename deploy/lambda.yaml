@@ -51,6 +51,8 @@ Resources:
             Queue: !Ref SQSQueueArn
             BatchSize: 10
             MaximumBatchingWindowInSeconds: 5
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
             Enabled: true
       Tags:
         Environment: !Ref Environment

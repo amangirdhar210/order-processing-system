@@ -229,6 +229,14 @@ aws cloudformation create-stack \
 
 ## Testing
 
+### POSTMAN TRACK ORDER PERFORMANCE TESTING REPORT 
+<img width="1028" height="879" alt="track-order-endpoint-performance" src="https://github.com/user-attachments/assets/3e1ae232-7e6e-4dc6-b35d-7e3b51a1c074" />
+1. Avg response time of 49 ms 
+2. Load tested for approx 261 req per sec 
+3. Total req served 25,560
+4. Strongly optimized read requests (access patterns)
+
+
 ```bash
 # Run all tests with coverage
 pytest --cov=app --cov-report=term-missing

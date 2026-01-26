@@ -29,6 +29,11 @@ Parameters:
     Default: "arn:aws:secretsmanager:ap-south-1:278273886744:secret:jwt-secret-order-g7168T"
     Description: Secrets Manager ARN for JWT secret key
 
+  CertificateArn:
+    Type: String
+    Default: "arn:aws:acm:ap-south-1:278273886744:certificate/54dc3691-7c1f-406f-8217-13cb78198a9e"
+    Description: ACM Certificate ARN for HTTPS on ALB (leave empty for HTTP only)
+
   DesiredCount:
     Type: Number
     Default: 1
@@ -53,6 +58,16 @@ Parameters:
     Type: Number
     Default: 8000
     Description: Container port for the application
+
+  EnableWAF:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Enable AWS WAF with rate limiting
+
+Conditions:
+  WAFEnabled: !Equals [!Ref EnableWAF, "true"]
+  HasCertificate: !Not [!Equals [!Ref CertificateArn, ""]]
 
 Resources:
   OrderProcessingTable:
@@ -264,6 +279,45 @@ Resources:
       LogGroupName: /ecs/order-processing-api
       RetentionInDays: 7
 
+  WAFWebACL:
+    Type: AWS::WAFv2::WebACL
+    Condition: WAFEnabled
+    Properties:
+      Name: order-processing-waf
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      Rules:
+        - Name: RateLimitRule
+          Priority: 1
+          Statement:
+            RateBasedStatement:
+              Limit: 500
+              AggregateKeyType: IP
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: RateLimitRule
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: OrderProcessingWAF
+      Tags:
+        - Key: Application
+          Value: OrderProcessing
+
+  WAFWebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Condition: WAFEnabled
+    DependsOn: ApplicationLoadBalancer
+    Properties:
+      ResourceArn: !Ref ApplicationLoadBalancer
+      WebACLArn: !GetAtt WAFWebACL.Arn
+
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -308,6 +362,25 @@ Resources:
       LoadBalancerArn: !Ref ApplicationLoadBalancer
       Protocol: HTTP
       Port: 80
+      DefaultActions: !If
+        - HasCertificate
+        - - Type: redirect
+            RedirectConfig:
+              Protocol: HTTPS
+              Port: '443'
+              StatusCode: HTTP_301
+        - - Type: forward
+            TargetGroupArn: !Ref ALBTargetGroup
+
+  ALBListenerHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: HasCertificate
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Protocol: HTTPS
+      Port: 443
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref ALBTargetGroup
@@ -364,7 +437,8 @@ Resources:
 
   ECSService:
     Type: AWS::ECS::Service
-    DependsOn: ALBListener
+    DependsOn:
+      - ALBListener
     Properties:
       ServiceName: order-processing-api
       Cluster: !Ref ECSCluster
@@ -479,7 +553,10 @@ Outputs:
 
   LoadBalancerUrl:
     Description: Application Load Balancer URL
-    Value: !Sub 'http://${ApplicationLoadBalancer.DNSName}'
+    Value: !If
+      - HasCertificate
+      - !Sub 'https://${ApplicationLoadBalancer.DNSName}'
+      - !Sub 'http://${ApplicationLoadBalancer.DNSName}'
     Export:
       Name: OrderProcessing-LoadBalancerUrl
 
@@ -488,4 +565,11 @@ Outputs:
     Value: !Ref ALBTargetGroup
     Export:
       Name: OrderProcessing-TargetGroupArn
+
+  WAFWebACLArn:
+    Condition: WAFEnabled
+    Description: WAF Web ACL ARN
+    Value: !GetAtt WAFWebACL.Arn
+    Export:
+      Name: OrderProcessing-WAFWebACLArn
 

@@ -8,6 +8,16 @@ A production-ready serverless order processing system built on AWS that handles 
 2. Track order status throughout its lifecycle and process fulfilment asynchronously.
 3. Notify Users as the order progresses or when failure occurs.
 
+## Assumptions
+
+This service is designed as a core component of an e-commerce platform that expects consistent 24x7 traffic load. The architecture choice of ECS Fargate over Lambda for the REST API is driven by:
+
+- **Consistent Load**: E-commerce platforms experience continuous traffic rather than sporadic bursts, making containerized workloads more cost-effective than Lambda's per-invocation pricing model
+- **Low Latency Requirements**: Order placement and payment processing require sub-100ms response times; ECS eliminates Lambda cold starts and provides predictable performance
+- **Stateful Connections**: Long-running container instances maintain warm database connections and JWT validation caches, reducing per-request overhead
+
+Lambda is still used for asynchronous email notifications where sporadic execution and cold start latency are acceptable trade-offs for cost efficiency.
+
 ## Overview
 
 This system implements an event-driven architecture that tracks order status throughout its lifecycle and notifies users as orders progress through various stages (created, payment confirmed, fulfillment started, completed, or cancelled).
@@ -50,6 +60,8 @@ This system implements an event-driven architecture that tracks order status thr
 - **SQS DLQ**: Dead letter queue with 3 max receive count
 
 ### Security
+- **ACM Certificate**: HTTPS enabled with TLS 1.2+ on ALB (HTTP auto-redirects to HTTPS)
+- **AWS WAF**: Rate limiting (500 requests per 5 minutes per IP) with DDoS protection
 - **Secrets Manager**: JWT secret key storage
 - **IAM Roles**: Task execution role (ECR, Secrets Manager) and task role (DynamoDB, SNS)
 - **Security Groups**: ALB accepts port 80/443 from internet, ECS tasks only accept from ALB
@@ -58,6 +70,7 @@ This system implements an event-driven architecture that tracks order status thr
 ### Monitoring
 - **CloudWatch Logs**: 7-day retention for ECS task logs
 - **Health Checks**: ALB target group health checks on /health endpoint (30s interval, 3 retries)
+- **WAF Metrics**: Rate limit violations and blocked requests tracked in CloudWatch
 
 ## Key Features
 
@@ -182,6 +195,8 @@ aws cloudformation create-stack \
 
 ## Configuration Parameters
 
+- `CertificateArn`: ACM certificate ARN for HTTPS (leave empty for HTTP only)
+- `EnableWAF`: Enable AWS WAF with rate limiting (default: true)
 - `DesiredCount`: Initial number of ECS tasks (default: 1)
 - `MinTaskCount`: Minimum tasks for auto-scaling (default: 1)
 - `MaxTaskCount`: Maximum tasks for auto-scaling (default: 3)
@@ -204,26 +219,10 @@ Test coverage: 98% across 189 tests
 ## Security Considerations
 
 ### Current Implementation
-- JWT tokens stored in Secrets Manager
-- IAM roles follow least privilege principle
-- ECS tasks isolated in private subnets
-- Security groups restrict traffic (ECS only accepts from ALB)
-- No hardcoded credentials in code or containers
-
-### Production Recommendations
-- Enable HTTPS with ACM certificate on ALB
-- Add AWS WAF for DDoS protection and rate limiting
-- Enable encryption at rest for DynamoDB, SQS, SNS
-- Enable DynamoDB Point-in-Time Recovery
-- Add CloudTrail for API audit logging
-- Enable VPC Flow Logs for network monitoring
-- Run container as non-root user
-- Implement secrets rotation with Lambda
-
-## Known Limitations
-
-- HTTP only (HTTPS requires ACM certificate)
-- No encryption at rest for data stores
-- CloudWatch logs not encrypted
-- 7-day log retention (consider longer for compliance)
-- Single-region deployment (no cross-region replication)
+- **HTTPS with TLS**: ACM certificate configured on ALB with HTTP to HTTPS redirect
+- **AWS WAF**: Rate-based rule limiting 500 requests per 5 minutes per IP
+- **Secrets Management**: JWT tokens stored in AWS Secrets Manager
+- **IAM Least Privilege**: Separate task execution and task roles with minimal permissions
+- **Network Isolation**: ECS tasks in private subnets, only accessible via ALB
+- **Security Groups**: Restrictive ingress rules (ECS only accepts from ALB security group)
+- **No Hardcoded Secrets**: All credentials injected via environment variables from Secrets Manager

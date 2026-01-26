@@ -102,6 +102,29 @@ Email sent for these events:
 - FULFILLMENT_COMPLETED
 - ORDER_CANCELLED
 
+## Screenshots
+1. Order Confirmation  
+<img width="576" height="683" alt="order_placed_confirmation" src="https://github.com/user-attachments/assets/4d5d5c42-420b-4afe-8c77-3081143a3c86" />
+
+2. Order Cancelled
+<img width="578" height="688" alt="order_cancelled" src="https://github.com/user-attachments/assets/df997a0c-fb7b-4830-99b3-eda1222eff98" />
+
+3. Order Payment Success
+<img width="579" height="682" alt="order_payment_success" src="https://github.com/user-attachments/assets/f4257ab1-84cb-4481-97e2-8f162bcc1989" />
+
+4. Order Payment Failed
+<img width="590" height="673" alt="order_payment_fail" src="https://github.com/user-attachments/assets/66af093a-e26f-4152-9066-1591e812d59e" />
+
+5. Order Fulfillment Started
+<img width="580" height="691" alt="order_fulfillment_start" src="https://github.com/user-attachments/assets/f59af8b5-d587-48a3-8450-e108390ca2fe" />
+
+6. Order Fulfillment Cancelled
+<img width="587" height="691" alt="order_fulfilment_cancelled" src="https://github.com/user-attachments/assets/0d2c57fd-5777-47b4-870d-69a8698dcc32" />
+
+7. Order Fulfilment Completed
+<img width="587" height="684" alt="order_fulfilled" src="https://github.com/user-attachments/assets/d57b9f0d-87c4-4e18-8942-1c583da8288e" />
+
+
 ### Error Handling
 - **Deployment Circuit Breaker**: Automatic rollback on failed deployments
 - **SQS Retry Logic**: 3 attempts before moving to DLQ
@@ -226,3 +249,7 @@ Test coverage: 98% across 189 tests
 - **Network Isolation**: ECS tasks in private subnets, only accessible via ALB
 - **Security Groups**: Restrictive ingress rules (ECS only accepts from ALB security group)
 - **No Hardcoded Secrets**: All credentials injected via environment variables from Secrets Manager
+
+
+
+

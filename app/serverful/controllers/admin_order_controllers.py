@@ -10,9 +10,9 @@ class OrderListResponse(BaseModel):
     orders: List[Order]
     total_count: int
 
-staff_router = APIRouter(prefix="/orders", dependencies=[Depends(require_staff)])
+staff_router = APIRouter(dependencies=[Depends(require_staff)])
 
-@staff_router.patch("/{order_id}/fulfilment", response_model=GenericResponse, status_code=status.HTTP_200_OK)
+@staff_router.patch("/orders/{order_id}/fulfilment", response_model=GenericResponse, status_code=status.HTTP_200_OK)
 async def update_fulfilment(
     order_id: str,
     fulfilment_request: UpdateFulfilmentRequest,
@@ -37,7 +37,7 @@ async def update_fulfilment(
     
     return GenericResponse(message=f"Fulfilment {action_verb_map[action]} successfully")
 
-@staff_router.get("/all", response_model=OrderListResponse, status_code=status.HTTP_200_OK)
+@staff_router.get("/orders/all", response_model=OrderListResponse, status_code=status.HTTP_200_OK)
 async def get_all_orders(
     order_service: OrderServiceInstance,
 ) -> OrderListResponse:
@@ -45,7 +45,7 @@ async def get_all_orders(
     orders = await order_service.get_orders_by_status(None)
     return OrderListResponse(orders=orders, total_count=len(orders))
 
-@staff_router.get("/order/{order_id}", response_model=Order, status_code=status.HTTP_200_OK)
+@staff_router.get("/orders/order/{order_id}", response_model=Order, status_code=status.HTTP_200_OK)
 async def get_order_by_id(
     order_id: str,
     order_service: OrderServiceInstance,
@@ -53,7 +53,7 @@ async def get_order_by_id(
     """Get order details by order ID without user ID"""
     return await order_service.get_order_by_id(order_id)
 
-@staff_router.get("/{order_status}", response_model=OrderListResponse, status_code=status.HTTP_200_OK)
+@staff_router.get("/orders/{order_status}", response_model=OrderListResponse, status_code=status.HTTP_200_OK)
 async def get_all_orders_by_status(
     order_status: OrderStatus,
     order_service: OrderServiceInstance,

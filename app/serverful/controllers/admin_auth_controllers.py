@@ -5,12 +5,11 @@ from app.serverful.dependencies.dependencies import UserServiceInstance
 
 
 admin_auth_router = APIRouter(
-    prefix="/admin/users",
     dependencies=[Depends(require_admin)]
 )
 
 
-@admin_auth_router.get("", response_model=UserListDTO, status_code=status.HTTP_200_OK)
+@admin_auth_router.get("/admin/users", response_model=UserListDTO, status_code=status.HTTP_200_OK)
 async def get_all_users(
     user_service: UserServiceInstance,
 ) -> UserListDTO:
@@ -30,7 +29,7 @@ async def get_all_users(
     return UserListDTO(users=user_dtos, count=len(user_dtos))
 
 
-@admin_auth_router.post("/staff", response_model=GenericResponse, status_code=status.HTTP_201_CREATED)
+@admin_auth_router.post("/admin/users/staff", response_model=GenericResponse, status_code=status.HTTP_201_CREATED)
 async def create_staff_user(
     staff_request: CreateStaffRequest,
     user_service: UserServiceInstance,
@@ -39,7 +38,7 @@ async def create_staff_user(
     return GenericResponse(message=f"{staff_request.role.capitalize()} user created successfully")
 
 
-@admin_auth_router.delete("/{user_id}", response_model=GenericResponse, status_code=status.HTTP_200_OK)
+@admin_auth_router.delete("/admin/users/{user_id}", response_model=GenericResponse, status_code=status.HTTP_200_OK)
 async def delete_user(
     user_id: str,
     user_service: UserServiceInstance,

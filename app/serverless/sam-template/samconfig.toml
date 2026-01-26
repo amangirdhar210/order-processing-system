@@ -5,7 +5,7 @@ stack_name = "email-process"
 resolve_s3 = true
 s3_prefix = "email-process"
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "Environment=\"dev\" DynamoDBTableName=\"order-processing-system\" SQSQueueArn=\"arn:aws:sqs:ap-south-1:278273886744:order-events\" FromEmail=\"noreply@amangirdhar.me\""
+parameter_overrides = "Environment=\"prod\" DynamoDBTableName=\"order-processing-system\" SQSQueueArn=\"arn:aws:sqs:ap-south-1:278273886744:order-events\" FromEmail=\"noreply@amangirdhar.me\""
 image_repositories = []
 
 [default.global.parameters]

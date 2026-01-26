@@ -21,10 +21,12 @@ Parameters:
 
   ECRImageUri:
     Type: String
+    Default: "278273886744.dkr.ecr.ap-south-1.amazonaws.com/order-processing-system:latest"
     Description: ECR image URI for the application (e.g., 123456789.dkr.ecr.region.amazonaws.com/order-processing:latest)
 
   JWTSecretArn:
     Type: String
+    Default: "arn:aws:secretsmanager:ap-south-1:278273886744:secret:jwt-secret-order-g7168T"
     Description: Secrets Manager ARN for JWT secret key
 
   DesiredCount:
@@ -216,6 +218,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - dynamodb:DescribeTable
                   - dynamodb:GetItem
                   - dynamodb:PutItem
                   - dynamodb:UpdateItem
@@ -234,6 +237,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - sns:Publish
+                  - sns:GetTopicAttributes
                 Resource: !Ref OrderEventsTopic
       Tags:
         - Key: Application
@@ -272,7 +276,7 @@ Resources:
       HealthCheckPath: /health
       HealthCheckIntervalSeconds: 30
       HealthCheckTimeoutSeconds: 5
-      HealthyThresholdCount: 2
+      HealthyThresholdCount: 3
       UnhealthyThresholdCount: 3
       Matcher:
         HttpCode: 200

@@ -13,10 +13,4 @@ class Settings:
     DYNAMODB_TABLE_NAME: str = os.getenv("DYNAMODB_TABLE_NAME", "order-processing-local")
     SNS_TOPIC_ARN: str = os.getenv("SNS_TOPIC_ARN", "arn:aws:sns:ap-south-1:278273886744:order-events")
 
-    BCRYPT_ROUNDS: int = 12
-
-    API_TITLE: str = "Order Processing System"
-    API_VERSION: str = "1.0.0"
-
-
 settings = Settings()
